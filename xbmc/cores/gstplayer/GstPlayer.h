@@ -51,7 +51,7 @@ typedef struct{
    MediaVideoInfo * video_info;
 } MediaInfo;
 
-class CGstPlayer : public IPlayer, public CThread
+class CGstPlayer : public IPlayer, public CThread, public IDVDPlayer
 {
 public:
   CGstPlayer(IPlayerCallback& callback);
@@ -112,6 +112,9 @@ public:
   virtual void GetAudioStreamName(int iStream, CStdString &strStreamName);
   virtual void SetAudioStream(int iStream);
   virtual int GetAudioStream();
+  virtual int OnDVDNavResult(void* pData, int iMessage);
+  virtual void OnExit();
+  bool OpenInputStream();
 
   
 private:
