@@ -1084,7 +1084,7 @@ void CGstPlayer::Seek(bool bPlus, bool bLargeStep)
     else
       percent = bPlus ? g_advancedSettings.m_videoPercentSeekForward :
           g_advancedSettings.m_videoPercentSeekBackward;
-    seek = (__int64)(GetTime()*(GetPercentage()+percent)/100);
+    seek = (__int64)(GetTotalTime()*1000*(GetPercentage()+percent)/100);
   }
 
   GstEvent *seek_event;
