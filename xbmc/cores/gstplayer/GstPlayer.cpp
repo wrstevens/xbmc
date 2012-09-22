@@ -364,6 +364,8 @@ gst_xbmc_src_create_read (GstXbmcSrc * src, guint64 offset, guint length,
 {
   int ret;
   GstBuffer *buf;
+  int rest_bytes = 0;
+  int timeout = 10;
 
   if (G_UNLIKELY (src->read_position != offset)) {
     off_t res;
@@ -385,17 +387,33 @@ gst_xbmc_src_create_read (GstXbmcSrc * src, guint64 offset, guint length,
   if (length > 0) {
     GST_LOG_OBJECT (src, "Reading %d bytes at offset 0x%" G_GINT64_MODIFIER "x",
         length, offset);
-    ret = xbmcsrc_read (GST_BUFFER_DATA (buf), length);
-    if (G_UNLIKELY (ret < 0))
-      goto could_not_read;
 
-    /* seekable regular files should have given us what we expected */
-    if (G_UNLIKELY ((guint) ret < length && src->seekable))
+    ret = 0;
+    rest_bytes = length;
+
+    do{
+
+      int readed_size;
+      readed_size = xbmcsrc_read (GST_BUFFER_DATA (buf)+ret, rest_bytes);
+
+      if (G_UNLIKELY (readed_size < 0))
+        goto could_not_read;
+
+      /* seekable regular files should have given us what we expected */
+      //if (G_UNLIKELY ((guint) ret < length && src->seekable))
+      //  goto unexpected_eos;
+
+      /* other files should eos if they read 0 and more was requested */
+      if (G_UNLIKELY (readed_size == 0 && length > 0))
+        goto eos;
+
+      ret += readed_size;
+      rest_bytes = length - ret;
+
+    }while(rest_bytes && ((timeout--)>0));
+
+    if(timeout<0)
       goto unexpected_eos;
-
-    /* other files should eos if they read 0 and more was requested */
-    if (G_UNLIKELY (ret == 0 && length > 0))
-      goto eos;
 
     length = ret;
     GST_BUFFER_SIZE (buf) = length;
