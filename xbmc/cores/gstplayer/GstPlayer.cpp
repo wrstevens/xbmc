@@ -365,7 +365,7 @@ gst_xbmc_src_create_read (GstXbmcSrc * src, guint64 offset, guint length,
   int ret;
   GstBuffer *buf;
   int rest_bytes = 0;
-  int timeout = 10;
+  int timeout = 256;
 
   if (G_UNLIKELY (src->read_position != offset)) {
     off_t res;
